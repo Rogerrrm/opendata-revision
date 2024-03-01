@@ -1,0 +1,267 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    
+    <style>
+        html, body {
+	 height: 100%;
+}
+ body {
+	 margin: 0;
+	 background: drakblue;
+}
+ canvas {
+	 display: block;
+}
+ .waves {
+	 position: absolute;
+	 left: 0;
+	 top: 0;
+	 right: 0;
+	 bottom: 0;
+}
+ .wrapper {
+	 position: relative;
+	 min-height: 700px;
+}
+ canvas {
+	 display: block;
+	 vertical-align: bottom;
+}
+ #particles-js {
+	 position: absolute;
+	 width: 100%;
+	 height: 30%;
+	 bottom: 0;
+	 background: transparent;
+}
+ a, a:visited {
+	 color: #e34234;
+	 transition: 0.25s;
+}
+ a:hover, a:focus {
+	 color: #ba160c;
+}
+ 
+    </style>
+
+</head>
+<body>
+    <div class="wrapper">
+        <div class="waves"></div>
+      <div id="particles-js"></div>
+      </div>
+      <script src="https://cldup.com/S6Ptkwu_qA.js"></script>
+    <script src="https://codepen.io/bsehovac/pen/mddZWPw.js"></script>
+      <script>
+        
+        const pointSize = 2.0
+             const waves = new ShaderProgram( document.querySelector( '.waves' ), {
+               mousemove: true,
+               texture: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAb1BMVEUAAAD///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8v0wLRAAAAJHRSTlMAC/goGvDhmwcExrVjWzrm29TRqqSKenRXVklANSIUE8mRkGpv+HOfAAABCElEQVQ4y4VT13LDMAwLrUHteO+R9f/fWMfO6dLaPeKVEECRxOULWsEGpS9nULDwia2Y+ALqUNbAWeg775zv+sA4/FFRMxt8U2FZFCVWjR/YrH4/H9sarclSKdPMWKzb8VsEeHB3m0shkhVCyNzeXeAQ9Xl4opEieX2QCGnwGbj6GMyjw9t1K0fK9YZunPXeAGsfJtYjwzxaBnozGGorYz0ypK2HzQSYx1y8DgSRo2ewOiyh2QWOEk1Y9OrQV0a8TiBM1a8eMHWYnRMy7CZ4t1CmyRkhSUvP3gRXyHOCLBxNoC3IJv//ZrJ/kxxUHPUB+6jJZZHrpg6GOjnqaOmzp4NDR48OLxn/H27SRQ08S0ZJAAAAAElFTkSuQmCC',
+               uniforms: {
+                 size: { type: 'float', value: pointSize },
+                 field: { type: 'vec3', value: [ 0, 0, 5 ] },
+                 speed: { type: 'float', value: 1 },
+                 aspect: { type: 'float', value: window.innerWidth / window.innerHeight}
+               },
+               vertex: `
+                 #define M_PI 3.1415926535897932384626433832795
+             
+                 precision highp float;
+             
+                 attribute vec4 a_position;
+                 attribute vec4 a_color;
+                 
+                 uniform float u_aspect;
+                 uniform float u_time;
+                 uniform float u_size;
+                 uniform float u_speed;
+                 uniform vec3 u_field;
+                 uniform mat4 u_projection;
+                 uniform vec2 u_mousemove;
+             
+                 varying vec4 v_color;
+             
+                 void main() {
+             
+                   vec3 pos = a_position.xyz;
+             
+                   pos.y += (
+                     cos(pos.x / u_field.x * M_PI * 8.0 + u_time * u_speed) +
+                     sin(pos.z / u_field.z * M_PI * 8.0 + u_time * u_speed)
+                   ) * u_field.y;
+             
+                   gl_Position = u_projection * vec4( pos.xyz, a_position.w );
+                   gl_PointSize = ( u_size / gl_Position.w ) * 100.0;
+                   
+                   vec2 posUV = gl_Position.xy / gl_Position.w;
+                   vec2 mouse = u_mousemove;
+                   mouse.y *= -1.;
+                   vec2 asp = vec2(u_aspect, 1.);
+                   float d = distance(posUV * asp, mouse * asp);
+                   
+                   vec4 col = vec4(5, 0, 0, 0.9);
+                   v_color = d < 0.2 ? col : a_color;
+             
+                 }`,
+               fragment: `
+                 precision highp float;
+             
+                 uniform sampler2D u_texture;
+             
+                 varying vec4 v_color;
+             
+                 void main() {
+             
+                   gl_FragColor = v_color * texture2D(u_texture, gl_PointCoord);
+             
+                 }`,
+               onResize( w, h, dpi ) {
+             
+                 const position = [], color = []
+             
+                 const width = 400 * ( w / h )
+                 const depth = 400
+                 const height = 8
+                 const distance = 1.6
+             
+                 for ( let x = 0; x < width; x += distance ) {
+                   for ( let z = 1; z < depth; z+= distance ) {
+             
+                     position.push( - width / 2 + x, -16, -depth / 4 + z )
+                     color.push( 0,0,0, 0.3)
+             
+                   }
+                 }
+             
+                 this.uniforms.field = [ width, height, depth ]
+             
+                 this.buffers.position = position
+                 this.buffers.color = color
+             
+                 this.uniforms.size = ( h / 500) * pointSize * dpi
+             
+               },
+             } )
+             console.log(waves);
+       
+         /* ---- particles.js config ---- */
+             particlesJS("particles-js", {
+               "particles": {
+                 "number": {
+                   "value": 280,
+                   "density": {
+                     "enable": true,
+                     "value_area": 4800
+                   }
+                 },
+                 "color": {
+                   "value": "#ABA8BB"
+                 },
+                 "shape": {
+                   "type": "circle",
+                   "stroke": {
+                     "width": 0,
+                     "color": "#ABA8BB",
+                     "opacity": 0.1,
+                   },
+                   "polygon": {
+                     "nb_sides": 2
+                   },
+                   "image": {
+                     "src": "img/github.svg",
+                     "width": 100,
+                     "height": 100
+                   }
+                 },
+                 "opacity": {
+                   "value": 0.5,
+                   "random": false,
+                   "anim": {
+                     "enable": false,
+                     "speed": 1,
+                     "opacity_min": 0.1,
+                     "sync": false
+                   }
+                 },
+                 "size": {
+                   "value": 1,
+                   "random": true,
+                   "anim": {
+                     "enable": false,
+                     "speed": 20,
+                     "size_min": 0.1,
+                     "sync": false
+                   }
+                 },
+                 "line_linked": {
+                   "enable": true,
+                   "distance": 10,
+                   "color": "#e82517",
+                   "opacity": 0.1,
+                   "width": 1
+                 },
+                 "move": {
+                   "enable": true,
+                   "speed": 3,
+                   "direction": "none",
+                   "random": true,
+                   "straight": false,
+                   "out_mode": "out",
+                   "bounce": true,
+                   "attract": {
+                     "enable": false,
+                     "rotateX": 100,
+                     "rotateY": 200
+                   }
+                 }
+               },
+               "interactivity": {
+                 "detect_on": "canvas",
+                 "events": {
+                   "onhover": {
+                     "enable": true,
+                     "mode": "grab"
+                   },
+                   "onclick": {
+                     "enable": true,
+                     "mode": "push"
+                   },
+                   "resize": true
+                 },
+                 "modes": {
+                   "grab": {
+                     "distance": 100,
+                     "line_linked": {
+                       "opacity": 1
+                     }
+                   },
+                   "bubble": {
+                     "distance": 50,
+                     "size": 3,
+                     "duration": 2,
+                     "opacity": 0,
+                     "speed": 3
+                   },
+                   "repulse": {
+                     "distance": 200,
+                     "duration": 0.4
+                   },
+                   "push": {
+                     "particles_nb": 2
+                   },
+                   "remove": {
+                     "particles_nb": 2
+                   }
+                 }
+               },
+               "retina_detect": true
+             });
+           
+           </script>
+      
+</body>
+</html>
